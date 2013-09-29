@@ -13,6 +13,7 @@ import random
 import time
 import chardet
 import re
+import sqlite3 as lite
 
 html_begin = '''<!DOCTYPE html>
 <html>
@@ -44,7 +45,7 @@ class Message:
     if(sensitive == False):
       upperMessage = self.message.upper()
       upperWord = word.upper()
-      return upperMessage.(upperWord) != -1
+      return upperMessage.find(upperWord) != -1
     return self.message.find(word) != -1
 
   def GetMsg(self):
@@ -99,8 +100,8 @@ class Message:
       channel = self.GetChannel().replace('#','')
       fname = directory+'/'+channel+'-'+date+'.log.html'
       return 'http://irc.mozilla-tunisia.org/'+fname
-    except: 
-      return None
+    except:
+      return None 
 
 
 #Config
@@ -239,7 +240,20 @@ def MakeAction(msg):
     url = getBug(message.GetMsg())
     if(url):
       s.send('PRIVMSG %s :%s\r\n' % (message.GetChannel(), url))
-
+  if(message.contains('whois')):
+    cmd = message.GetMsg().split(" ")
+    if(len(cmd) < 2):
+      return
+    targetName = cmd[1]
+    con = lite.connect('moztnbot.db')
+    with con:
+      cur = con.cursor()
+      cur.execute("SELECT BM FROM Users WHERE username = '%s'" % targetName)      
+      row = cur.fetchone()
+      while True:
+	if row == None:
+          print("none")
+        s.send("PRIVMSG %s :%s, %s\r\n" % (message.GetChannel(), message.GetUname(), row[0]))
 
 def getLinkname():
   buff = s.recv(1024)
