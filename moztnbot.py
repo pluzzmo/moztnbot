@@ -244,10 +244,17 @@ def MakeAction(msg):
     cmd = message.GetMsg().split(" ")
     if(len(cmd) < 2):
       return
-    targetName = cmd[1]
-    con = lite.connect('moztnbot.db')
-    with con:
+    if(cmd[1] == '-a'):
+      con = lite.connect('moztnbot.db')
+      username = cmd[2]
+      url = cmd[3]
+      with con:    
+        cur = con.cursor()
+        cur.execute("INSERT INTO Users VALUES('%s','%s')" % (username, url))
+    else :
+      con = lite.connect('moztnbot.db')
       cur = con.cursor()
+      targetName = cmd[1]
       cur.execute("SELECT BM FROM Users WHERE username = '%s'" % targetName)      
       row = cur.fetchone()
       while True:
